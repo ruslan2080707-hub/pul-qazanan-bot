@@ -12,7 +12,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+ENV FLASK_APP=src.main
 ENV PYTHONUNBUFFERED=1
 
-# Railway provides PORT environment variable
-CMD python3.11 src/main.py
+EXPOSE 5000
+
+CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]
