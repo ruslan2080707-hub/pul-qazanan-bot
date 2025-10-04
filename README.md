@@ -2,9 +2,15 @@
 
 Telegram Mini App - тапалка на азербайджанском языке с продуманной экономикой, реферальной системой и красивым черно-золотым дизайном.
 
-![Status](https://img.shields.io/badge/status-ready-brightgreen)
+![Status](https://img.shields.io/badge/status-live-brightgreen)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Telegram-blue)
+
+## 🌐 Live Demo
+
+**Production URL**: https://pul-qazanan-bot-production.up.railway.app/
+
+**Telegram Bot**: [@pul_qazanan_bot](https://t.me/pul_qazanan_bot)
 
 ---
 
