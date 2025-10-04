@@ -9,13 +9,13 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install gunicorn
 
 COPY . .
 
 ENV FLASK_APP=src.main
 ENV PYTHONUNBUFFERED=1
-ENV PORT=5000
 
-EXPOSE $PORT
+EXPOSE 5000
 
-CMD python -m flask run --host=0.0.0.0 --port=$PORT
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 src.main:app
