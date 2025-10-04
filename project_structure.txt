@@ -1,0 +1,27 @@
+.
+├── DEPLOYMENT_GUIDE.md
+├── Dockerfile
+├── README.md
+├── TELEGRAM_SETUP.md
+├── bot.log
+├── flask.log
+├── project_structure.txt
+├── requirements.txt
+├── run_bot.py
+└── src
+    ├── __init__.py
+    ├── bot.py
+    ├── database
+    │   └── app.db
+    ├── db.py
+    ├── main.py
+    ├── models
+    │   └── user.py
+    ├── routes
+    │   └── user.py
+    └── static
+        ├── assets
+        ├── favicon.ico
+        └── index.html
+
+6 directories, 18 files
