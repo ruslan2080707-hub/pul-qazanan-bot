@@ -93,9 +93,26 @@ def update_energy(telegram_id):
     return updated_user
 
 def process_tap(telegram_id, taps_count=1):
-    """Обработка кликов пользователя"""
+    """Обработка кликов пользователя с защитой от быстрых кликов"""
     conn = get_db_connection()
     cur = conn.cursor()
+    
+    # Проверяем время последнего клика
+    cur.execute('''
+        SELECT last_tap_at, 
+               EXTRACT(EPOCH FROM (NOW() - last_tap_at)) as seconds_since_last_tap
+        FROM users 
+        WHERE telegram_id = %s
+    ''', (telegram_id,))
+    
+    tap_check = cur.fetchone()
+    
+    # Если с последнего клика прошло меньше 0.1 секунды - отклоняем
+    if tap_check and tap_check['last_tap_at']:
+        if tap_check['seconds_since_last_tap'] < 0.1:
+            cur.close()
+            conn.close()
+            return {'success': False, 'error': 'Слишком быстро! Подождите немного.'}
     
     # Обновляем энергию перед обработкой
     user = update_energy(telegram_id)
