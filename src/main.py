@@ -206,21 +206,33 @@ def create_withdrawal():
         amount = float(data.get('amount'))
         card_number = data.get('card_number')
         
+        print(f"[WITHDRAWAL] Creating withdrawal for user {telegram_id}, amount: {amount}")
+        
         result = db.create_withdrawal(telegram_id, amount, card_number)
         
         if result['success']:
             # Отправляем уведомление админу
-            user = db.get_user_by_telegram_id(telegram_id)
-            asyncio.run(send_withdrawal_notification(
-                bot, 
-                result['withdrawal_id'], 
-                user, 
-                amount, 
-                card_number
-            ))
+            try:
+                user = db.get_user_by_telegram_id(telegram_id)
+                print(f"[WITHDRAWAL] Sending notification to admin for user: {user.get('first_name', 'Unknown')}")
+                
+                if bot:
+                    asyncio.run(send_withdrawal_notification(
+                        bot, 
+                        result['withdrawal_id'], 
+                        user, 
+                        amount, 
+                        card_number
+                    ))
+                    print(f"[WITHDRAWAL] Notification sent successfully")
+                else:
+                    print(f"[WITHDRAWAL] ERROR: Bot is not initialized!")
+            except Exception as notif_error:
+                print(f"[WITHDRAWAL] ERROR sending notification: {notif_error}")
         
         return jsonify(result)
     except Exception as e:
+        print(f"[WITHDRAWAL] ERROR: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/deposit', methods=['POST'])
@@ -230,7 +242,9 @@ def create_deposit():
         data = request.json
         telegram_id = data.get('telegram_id')
         amount = float(data.get('amount'))
-        proof_url = data.get('proof_url')
+        proof_url = data.get('proof_url', 'pending')
+        
+        print(f"[DEPOSIT] Creating deposit for user {telegram_id}, amount: {amount}")
         
         conn = db.get_db_connection()
         cur = conn.cursor()
@@ -248,18 +262,31 @@ def create_deposit():
         cur.close()
         conn.close()
         
+        print(f"[DEPOSIT] Deposit created with ID: {deposit_id}")
+        
         # Отправляем уведомление админу
-        user = db.get_user_by_telegram_id(telegram_id)
-        asyncio.run(send_deposit_notification(
-            bot, 
-            deposit_id, 
-            user, 
-            amount, 
-            proof_url
-        ))
+        try:
+            user = db.get_user_by_telegram_id(telegram_id)
+            print(f"[DEPOSIT] Sending notification to admin for user: {user.get('first_name', 'Unknown')}")
+            
+            if bot:
+                asyncio.run(send_deposit_notification(
+                    bot, 
+                    deposit_id, 
+                    user, 
+                    amount, 
+                    proof_url
+                ))
+                print(f"[DEPOSIT] Notification sent successfully")
+            else:
+                print(f"[DEPOSIT] ERROR: Bot is not initialized!")
+        except Exception as notif_error:
+            print(f"[DEPOSIT] ERROR sending notification: {notif_error}")
+            # Не возвращаем ошибку, так как депозит уже создан
         
         return jsonify({'success': True, 'deposit_id': deposit_id})
     except Exception as e:
+        print(f"[DEPOSIT] ERROR: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/admin/tasks', methods=['POST'])
