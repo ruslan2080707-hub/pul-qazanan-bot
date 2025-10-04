@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
+import math
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
@@ -501,3 +502,75 @@ def claim_passive_income(telegram_id):
     conn.close()
     
     return {'success': True, 'income': float(total_income)}
+def claim_card_income(telegram_id, card_id):
+    """Сбор дохода с конкретной карточки"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Get the specific card
+        cur.execute('''
+            SELECT c.* FROM cards c
+            JOIN users u ON c.user_id = u.id
+            WHERE u.telegram_id = %s AND c.id = %s
+        ''', (telegram_id, card_id))
+        
+        card = cur.fetchone()
+        
+        if not card:
+            cur.close()
+            conn.close()
+            return {'success': False, 'error': 'Kart tapılmadı'}
+        
+        # Check if last_claim_at exists and calculate time passed
+        last_claim = card.get('last_claim_at')
+        if last_claim:
+            hours_passed = (datetime.now() - last_claim).total_seconds() / 3600
+        else:
+            # If never claimed, calculate from purchase time
+            purchased_at = card.get('purchased_at')
+            if purchased_at:
+                hours_passed = (datetime.now() - purchased_at).total_seconds() / 3600
+            else:
+                hours_passed = 1  # Default to 1 hour
+        
+        # Check if at least 1 hour has passed
+        if hours_passed < 1:
+            time_left = (1 - hours_passed) * 60  # minutes
+            cur.close()
+            conn.close()
+            return {'success': False, 'error': f'Hələ {int(time_left)} dəqiqə gözləməlisiniz'}
+        
+        # Calculate income (only for full hours)
+        income = card['income_per_hour'] * math.floor(hours_passed)
+        
+        if income > 0:
+            # Update card last_claim_at
+            cur.execute('''
+                UPDATE cards SET last_claim_at = NOW() WHERE id = %s
+            ''', (card_id,))
+            
+            # Update user balance
+            cur.execute('''
+                UPDATE users SET balance = balance + %s WHERE telegram_id = %s
+            ''', (income, telegram_id))
+            
+            # Record transaction
+            cur.execute('''
+                INSERT INTO transactions (user_id, type, amount, description, created_at)
+                SELECT id, 'passive', %s, %s, NOW()
+                FROM users WHERE telegram_id = %s
+            ''', (income, f"Passiv gəlir: {card.get('name_az', 'Kart')}", telegram_id))
+            
+            conn.commit()
+        
+        cur.close()
+        conn.close()
+        
+        return {'success': True, 'income': float(income)}
+    
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'success': False, 'error': str(e)}

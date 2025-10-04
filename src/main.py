@@ -211,10 +211,18 @@ def claim_passive():
     try:
         data = request.json
         telegram_id = data.get('telegram_id')
+        card_id = data.get('card_id')
         
-        result = db.claim_passive_income(telegram_id)
+        if card_id:
+            # Claim specific card
+            result = db.claim_card_income(telegram_id, card_id)
+        else:
+            # Claim all cards (legacy support)
+            result = db.claim_passive_income(telegram_id)
+        
         return jsonify(result)
     except Exception as e:
+        logger.error(f"[CLAIM] ERROR: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/withdrawal', methods=['POST'])
