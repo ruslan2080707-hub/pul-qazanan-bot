@@ -326,3 +326,12 @@ if __name__ == '__main__':
     # Бот должен запускаться отдельно через run_bot.py
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+@app.route('/api/version')
+def version():
+    """Version endpoint to verify deployment"""
+    return jsonify({
+        'version': '2.0',
+        'features': ['energy_50_per_hour', 'task_link_required'],
+        'deployed_at': '2025-10-04'
+    })
