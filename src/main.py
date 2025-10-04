@@ -331,7 +331,8 @@ if __name__ == '__main__':
 def version():
     """Version endpoint to verify deployment"""
     return jsonify({
-        'version': '2.0',
-        'features': ['energy_50_per_hour', 'task_link_required'],
-        'deployed_at': '2025-10-04'
+        'version': '3.0',
+        'features': ['energy_50_per_hour', 'task_link_required', 'profile_page', 'withdrawal', 'deposit', 'click_delay', 'shop_fixed'],
+        'deployed_at': '2025-10-04',
+        'build_time': '07:25'
     })
