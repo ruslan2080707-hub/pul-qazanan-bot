@@ -20,6 +20,15 @@ CORS(app)
 bot_application = setup_bot()
 bot = bot_application.bot
 
+@app.route('/admin')
+def admin_panel():
+    """Админ панель для управления заданиями"""
+    admin_html_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'admin_panel.html')
+    if os.path.exists(admin_html_path):
+        with open(admin_html_path, 'r', encoding='utf-8') as f:
+            return f.read()
+    return "Admin panel not found", 404
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ панель - Pul Qazanan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h2 {
+            color: #FFD700;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #FFD700;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #666 0%, #444 100%);
+            color: #fff;
+        }
+        
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .response.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+        }
+        
+        .response.error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            color: #f44336;
+        }
+        
+        .task-list {
+            margin-top: 20px;
+        }
+        
+        .task-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .task-item h3 {
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+        
+        .task-item p {
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .task-item .reward {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Админ панель</h1>
+        <p class="subtitle">Pul Qazanan - Управление заданиями</p>
+        
+        <!-- Добавление задания -->
+        <div class="card">
+            <h2>➕ Добавить новое задание</h2>
+            <form id="addTaskForm">
+                <input type="hidden" id="admin_id" value="5649983054">
+                
+                <div class="form-group">
+                    <label for="title_az">Название (азербайджанский) *</label>
+                    <input type="text" id="title_az" required placeholder="Telegram kanalına abunə ol">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description_az">Описание (азербайджанский) *</label>
+                    <textarea id="description_az" required placeholder="Rəsmi Telegram kanalımıza abunə olun"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reward">Награда (AZN) *</label>
+                    <input type="number" id="reward" step="0.01" min="0" required placeholder="0.50">
+                </div>
+                
+                <div class="form-group">
+                    <label for="task_type">Тип задания *</label>
+                    <select id="task_type" required>
+                        <option value="subscribe">Subscribe (подписка на канал)</option>
+                        <option value="join">Join (вступление в группу)</option>
+                        <option value="follow">Follow (подписка Instagram)</option>
+                        <option value="visit">Visit (посещение сайта)</option>
+                        <option value="share">Share (репост)</option>
+                        <option value="custom">Custom (кастомное)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="check_data">URL для проверки *</label>
+                    <input type="text" id="check_data" required placeholder="https://t.me/your_channel">
+                </div>
+                
+                <button type="submit">Добавить задание</button>
+                
+                <div id="addResponse" class="response"></div>
+            </form>
+        </div>
+        
+        <!-- Список заданий -->
+        <div class="card">
+            <h2>📋 Текущие задания</h2>
+            <button onclick="loadTasks()" class="btn-secondary">Обновить список</button>
+            <div id="tasksList" class="task-list">
+                <div class="loading">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Удаление задания -->
+        <div class="card">
+            <h2>🗑️ Удалить задание</h2>
+            <form id="deleteTaskForm">
+                <div class="form-group">
+                    <label for="delete_task_id">ID задания</label>
+                    <input type="number" id="delete_task_id" required placeholder="1">
+                </div>
+                
+                <button type="submit" class="btn-danger">Удалить задание</button>
+                
+                <div id="deleteResponse" class="response"></div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'https://pul-qazanan-bot-production.up.railway.app';
+        const ADMIN_ID = 5649983054;
+        
+        // Добавление задания
+        document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                admin_id: ADMIN_ID,
+                title_az: document.getElementById('title_az').value,
+                description_az: document.getElementById('description_az').value,
+                reward: parseFloat(document.getElementById('reward').value),
+                task_type: document.getElementById('task_type').value,
+                check_data: document.getElementById('check_data').value
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const responseDiv = document.getElementById('addResponse');
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = '✅ Задание успешно добавлено!';
+                    responseDiv.style.display = 'block';
+                    document.getElementById('addTaskForm').reset();
+                    loadTasks();
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = '❌ Ошибка: ' + (result.error || 'Неизвестная ошибка');
+                    responseDiv.style.display = 'block';
+                }
+            } catch (error) {
+                const responseDiv = document.getElementById('addResponse');
+                responseDiv.className = 'response error';
+                responseDiv.textContent = '❌ Ошибка подключения: ' + error.message;
+                responseDiv.style.display = 'block';
+            }
+        });
+        
+        // Загрузка списка заданий
+        async function loadTasks() {
+            const tasksList = document.getElementById('tasksList');
+            tasksList.innerHTML = '<div class="loading">Загрузка...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/tasks?telegram_id=123456789`);
+                const data = await response.json();
+                
+                if (data.tasks && data.tasks.length > 0) {
+                    tasksList.innerHTML = '';
+                    data.tasks.forEach(task => {
+                        const taskItem = document.createElement('div');
+                        taskItem.className = 'task-item';
+                        taskItem.innerHTML = `
+                            <h3>ID: ${task.id} - ${task.title_az}</h3>
+                            <p>${task.description_az}</p>
+                            <p class="reward">Награда: ${task.reward} AZN</p>
+                            <p>Тип: ${task.task_type}</p>
+                            <p>URL: ${task.check_data || 'Не указан'}</p>
+                        `;
+                        tasksList.appendChild(taskItem);
+                    });
+                } else {
+                    tasksList.innerHTML = '<p style="color: #888; text-align: center;">Заданий пока нет</p>';
+                }
+            } catch (error) {
+                tasksList.innerHTML = '<p style="color: #f44336; text-align: center;">Ошибка загрузки: ' + error.message + '</p>';
+            }
+        }
+        
+        // Удаление задания
+        document.getElementById('deleteTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const taskId = document.getElementById('delete_task_id').value;
+            
+            if (!confirm(`Вы уверены, что хотите удалить задание #${taskId}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/tasks/${taskId}?admin_id=${ADMIN_ID}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                const responseDiv = document.getElementById('deleteResponse');
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = '✅ Задание успешно удалено!';
+                    responseDiv.style.display = 'block';
+                    document.getElementById('deleteTaskForm').reset();
+                    loadTasks();
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = '❌ Ошибка: ' + (result.error || 'Неизвестная ошибка');
+                    responseDiv.style.display = 'block';
+                }
+            } catch (error) {
+                const responseDiv = document.getElementById('deleteResponse');
+                responseDiv.className = 'response error';
+                responseDiv.textContent = '❌ Ошибка подключения: ' + error.message;
+                responseDiv.style.display = 'block';
+            }
+        });
+        
+        // Загрузка заданий при открытии страницы
+        loadTasks();
+    </script>
+</body>
+</html>
