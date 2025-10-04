@@ -101,12 +101,8 @@ def process_tap(telegram_id, taps_count=1):
         # Начинаем транзакцию с блокировкой строки
         # SELECT FOR UPDATE блокирует строку до конца транзакции
         cur.execute('''
-            SELECT u.*, 
-                   COALESCE(COUNT(DISTINCT r.id), 0) as referral_count
-            FROM users u
-            LEFT JOIN users r ON r.referrer_id = u.id
-            WHERE u.telegram_id = %s
-            GROUP BY u.id
+            SELECT * FROM users 
+            WHERE telegram_id = %s
             FOR UPDATE
         ''', (telegram_id,))
         
@@ -117,6 +113,16 @@ def process_tap(telegram_id, taps_count=1):
             cur.close()
             conn.close()
             return {'success': False, 'error': 'Пользователь не найден'}
+        
+        # Получаем количество рефералов отдельным запросом
+        cur.execute('''
+            SELECT COUNT(*) as referral_count
+            FROM users
+            WHERE referrer_id = %s
+        ''', (user['id'],))
+        
+        referral_data = cur.fetchone()
+        user['referral_count'] = referral_data['referral_count'] if referral_data else 0
         
         # Обновляем энергию с учетом времени
         current_time = datetime.now()
