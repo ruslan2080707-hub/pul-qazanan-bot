@@ -154,9 +154,15 @@ def purchase_boost():
         telegram_id = data.get('telegram_id')
         boost_id = data.get('boost_id')
         
+        print(f"[SHOP] Boost purchase request: user={telegram_id}, boost_id={boost_id}")
+        
         result = db.purchase_boost(telegram_id, boost_id)
+        
+        print(f"[SHOP] Boost purchase result: {result}")
+        
         return jsonify(result)
     except Exception as e:
+        print(f"[SHOP] ERROR purchasing boost: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/cards', methods=['GET'])
@@ -180,9 +186,15 @@ def purchase_card():
         telegram_id = data.get('telegram_id')
         card_id = data.get('card_id')
         
+        print(f"[SHOP] Card purchase request: user={telegram_id}, card_id={card_id}")
+        
         result = db.purchase_card(telegram_id, card_id)
+        
+        print(f"[SHOP] Card purchase result: {result}")
+        
         return jsonify(result)
     except Exception as e:
+        print(f"[SHOP] ERROR purchasing card: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/cards/claim', methods=['POST'])

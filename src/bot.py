@@ -245,9 +245,10 @@ async def send_withdrawal_notification(bot, withdrawal_id, user_info, amount, ca
 
 async def send_deposit_notification(bot, deposit_id, user_info, amount, proof_url):
     """Отправка уведомления админу о депозите"""
+    username = user_info.get('username', 'нет username')
     text = (
         f"💵 Новый запрос на депозит #{deposit_id}\n\n"
-        f"👤 Пользователь: {user_info['first_name']} (@{user_info['username']})\n"
+        f"👤 Пользователь: {user_info['first_name']} (@{username})\n"
         f"💰 Сумма: {amount} AZN\n"
     )
     
@@ -259,8 +260,5 @@ async def send_deposit_notification(bot, deposit_id, user_info, amount, proof_ur
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # Отправляем картинку с подтверждением
-    if proof_url:
-        await bot.send_photo(chat_id=ADMIN_ID, photo=proof_url, caption=text, reply_markup=reply_markup)
-    else:
-        await bot.send_message(chat_id=ADMIN_ID, text=text, reply_markup=reply_markup)
+    # Всегда отправляем текстовое сообщение (без фото)
+    await bot.send_message(chat_id=ADMIN_ID, text=text, reply_markup=reply_markup)
