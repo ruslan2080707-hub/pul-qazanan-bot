@@ -369,10 +369,10 @@ def purchase_boost(telegram_id, boost_id):
     
     # Записываем покупку
     cur.execute('''
-        INSERT INTO boosts (user_id, boost_type, level, value, cost, purchased_at)
-        SELECT id, %s, 1, %s, %s, NOW()
+        INSERT INTO boosts (user_id, boost_type, multiplier, duration_hours, activated_at, is_active)
+        SELECT id, %s, %s, 24, NOW(), true
         FROM users WHERE telegram_id = %s
-    ''', (boost['type'], boost['value'], boost['cost'], telegram_id))
+    ''', (boost['type'], boost['value'], telegram_id))
     
     # Записываем транзакцию
     cur.execute('''
@@ -390,14 +390,14 @@ def purchase_boost(telegram_id, boost_id):
 def get_passive_cards():
     """Получение списка карточек пассивного заработка"""
     return [
-        {'id': 'oil_rig', 'name': 'Neft Quyusu', 'cost': 5.0, 'income_per_hour': 0.01, 'image': '🛢️'},
-        {'id': 'flame_towers', 'name': 'Alov Qüllələri', 'cost': 8.0, 'income_per_hour': 0.015, 'image': '🔥'},
-        {'id': 'caspian_sea', 'name': 'Xəzər Dənizi', 'cost': 12.0, 'income_per_hour': 0.02, 'image': '🌊'},
-        {'id': 'maiden_tower', 'name': 'Qız Qalası', 'cost': 15.0, 'income_per_hour': 0.025, 'image': '🏰'},
-        {'id': 'gobustan', 'name': 'Qobustan', 'cost': 20.0, 'income_per_hour': 0.03, 'image': '🗿'},
-        {'id': 'sheki_palace', 'name': 'Şəki Sarayı', 'cost': 25.0, 'income_per_hour': 0.035, 'image': '🏛️'},
-        {'id': 'carpet', 'name': 'Azərbaycan Xalçası', 'cost': 30.0, 'income_per_hour': 0.04, 'image': '🧵'},
-        {'id': 'pomegranate', 'name': 'Nar Bağı', 'cost': 35.0, 'income_per_hour': 0.045, 'image': '🍎'},
+        {'id': 'oil_rig', 'name': 'Neft Quyusu', 'name_az': 'Neft Quyusu', 'cost': 5.0, 'income_per_hour': 0.01, 'image': '🛢️'},
+        {'id': 'flame_towers', 'name': 'Alov Qüllələri', 'name_az': 'Alov Qüllələri', 'cost': 8.0, 'income_per_hour': 0.015, 'image': '🔥'},
+        {'id': 'caspian_sea', 'name': 'Xəzər Dənizi', 'name_az': 'Xəzər Dənizi', 'cost': 12.0, 'income_per_hour': 0.02, 'image': '🌊'},
+        {'id': 'maiden_tower', 'name': 'Qız Qalası', 'name_az': 'Qız Qalası', 'cost': 15.0, 'income_per_hour': 0.025, 'image': '🏰'},
+        {'id': 'gobustan', 'name': 'Qobustan', 'name_az': 'Qobustan', 'cost': 20.0, 'income_per_hour': 0.03, 'image': '🗿'},
+        {'id': 'sheki_palace', 'name': 'Şəki Sarayı', 'name_az': 'Şəki Sarayı', 'cost': 25.0, 'income_per_hour': 0.035, 'image': '🏛️'},
+        {'id': 'carpet', 'name': 'Azərbaycan Xalçası', 'name_az': 'Azərbaycan Xalçası', 'cost': 30.0, 'income_per_hour': 0.04, 'image': '🧵'},
+        {'id': 'pomegranate', 'name': 'Nar Bağı', 'name_az': 'Nar Bağı', 'cost': 35.0, 'income_per_hour': 0.045, 'image': '🍎'},
     ]
 
 def purchase_card(telegram_id, card_id):
@@ -426,10 +426,10 @@ def purchase_card(telegram_id, card_id):
     ''', (card['cost'], telegram_id))
     
     cur.execute('''
-        INSERT INTO cards (user_id, card_type, card_name, level, income_per_hour, cost, last_claim, purchased_at)
+        INSERT INTO cards (user_id, card_type, name_az, tier, income_per_hour, cost, last_claim_at, purchased_at)
         SELECT id, %s, %s, 1, %s, %s, NOW(), NOW()
         FROM users WHERE telegram_id = %s
-    ''', (card['id'], card['name'], card['income_per_hour'], card['cost'], telegram_id))
+    ''', (card['id'], card['name_az'], card['income_per_hour'], card['cost'], telegram_id))
     
     # Записываем транзакцию
     cur.execute('''
