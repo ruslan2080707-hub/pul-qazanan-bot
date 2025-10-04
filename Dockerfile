@@ -9,13 +9,10 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install gunicorn
 
 COPY . .
 
-ENV FLASK_APP=src.main
 ENV PYTHONUNBUFFERED=1
 
-EXPOSE 5000
-
-CMD gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 src.main:app
+# Railway provides PORT environment variable
+CMD python3.11 src/main.py
