@@ -1,0 +1,5 @@
+nohup: ignoring input
+2025-10-04 04:13:22,301 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8350475473:AAFKPXj8WZXyV61oZEOh5tj18U13NywM9Xg/getMe "HTTP/1.1 200 OK"
+2025-10-04 04:13:22,419 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8350475473:AAFKPXj8WZXyV61oZEOh5tj18U13NywM9Xg/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-04 04:13:22,421 - telegram.ext.Application - INFO - Application started
+2025-10-04 04:13:32,777 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8350475473:AAFKPXj8WZXyV61oZEOh5tj18U13NywM9Xg/getUpdates "HTTP/1.1 200 OK"
