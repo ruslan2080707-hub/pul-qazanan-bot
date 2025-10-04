@@ -214,12 +214,16 @@ def get_user_tasks(telegram_id):
     conn = get_db_connection()
     cur = conn.cursor()
     
+    # Get all active tasks with completion status for this specific user
     cur.execute('''
-        SELECT t.*, ut.status, ut.completed_at
+        SELECT 
+            t.*,
+            tc.status,
+            tc.completed_at
         FROM tasks t
-        LEFT JOIN task_completions ut ON t.id = ut.task_id 
-        LEFT JOIN users u ON ut.user_id = u.id
-        WHERE u.telegram_id = %s OR u.telegram_id IS NULL
+        LEFT JOIN task_completions tc ON t.id = tc.task_id 
+            AND tc.user_id = (SELECT id FROM users WHERE telegram_id = %s)
+        WHERE t.is_active = TRUE
         ORDER BY t.id
     ''', (telegram_id,))
     
