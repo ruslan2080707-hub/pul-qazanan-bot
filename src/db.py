@@ -70,9 +70,12 @@ def update_energy(telegram_id):
     max_energy = user['energy_max']
     
     if current_energy < max_energy:
-        # Восстановление 1 энергии каждые 86.4 секунды (1000 за 24 часа = 86400 секунд / 1000)
+        # Восстановление энергии: 1000 энергии за 24 часа
+        # 24 часа = 86400 секунд
+        # 86400 / 1000 = 86.4 секунды на 1 энергию
         time_diff = (datetime.now() - last_update).total_seconds()
-        energy_recovered = int(time_diff / 86.4)
+        energy_per_second = max_energy / 86400.0  # 1000 / 86400 = 0.01157 энергии в секунду
+        energy_recovered = int(time_diff * energy_per_second)
         new_energy = min(current_energy + energy_recovered, max_energy)
         
         cur.execute('''
