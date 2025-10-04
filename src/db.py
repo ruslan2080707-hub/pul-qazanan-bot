@@ -71,19 +71,21 @@ def update_energy(telegram_id):
     max_energy = user['energy_max']
     
     if current_energy < max_energy:
-        # Восстановление энергии: 50 энергии в час
-        # Вычисляем сколько полных часов прошло с последнего обновления
+        # Восстановление энергии: 1 энергия за 80 секунд (45 энергий в час)
+        # Вычисляем сколько времени прошло с последнего обновления
         time_diff = (datetime.now() - last_update).total_seconds()
-        hours_passed = int(time_diff / 3600)  # Полные часы
-        energy_recovered = hours_passed * 50  # 50 энергии за каждый час
-        new_energy = min(current_energy + energy_recovered, max_energy)
+        # Вычисляем сколько энергии восстановилось (1 энергия = 80 секунд)
+        energy_recovered = int(time_diff / 80)  # 1 энергия за каждые 80 секунд
         
-        cur.execute('''
-            UPDATE users 
-            SET energy_current = %s, last_energy_update = NOW()
-            WHERE telegram_id = %s
-        ''', (new_energy, telegram_id))
-        conn.commit()
+        if energy_recovered > 0:
+            new_energy = min(current_energy + energy_recovered, max_energy)
+            
+            cur.execute('''
+                UPDATE users 
+                SET energy_current = %s, last_energy_update = NOW()
+                WHERE telegram_id = %s
+            ''', (new_energy, telegram_id))
+            conn.commit()
     
     cur.execute('SELECT * FROM users WHERE telegram_id = %s', (telegram_id,))
     updated_user = cur.fetchone()
