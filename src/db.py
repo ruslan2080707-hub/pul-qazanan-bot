@@ -93,56 +93,98 @@ def update_energy(telegram_id):
     return updated_user
 
 def process_tap(telegram_id, taps_count=1):
-    """Обработка кликов пользователя"""
+    """Обработка кликов пользователя с защитой от race condition"""
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # Обновляем энергию перед обработкой
-    user = update_energy(telegram_id)
-    
-    if not user or user['energy_current'] < taps_count:
+    try:
+        # Начинаем транзакцию с блокировкой строки
+        # SELECT FOR UPDATE блокирует строку до конца транзакции
+        cur.execute('''
+            SELECT u.*, 
+                   COALESCE(COUNT(DISTINCT r.id), 0) as referral_count
+            FROM users u
+            LEFT JOIN users r ON r.referrer_id = u.id
+            WHERE u.telegram_id = %s
+            GROUP BY u.id
+            FOR UPDATE
+        ''', (telegram_id,))
+        
+        user = cur.fetchone()
+        
+        if not user:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            return {'success': False, 'error': 'Пользователь не найден'}
+        
+        # Обновляем энергию с учетом времени
+        current_time = datetime.now()
+        last_energy_update = user['last_energy_update']
+        
+        if last_energy_update:
+            hours_passed = (current_time - last_energy_update).total_seconds() / 3600
+            energy_to_add = int(hours_passed * 50)  # 50 энергии в час
+            
+            if energy_to_add > 0:
+                new_energy = min(user['energy_current'] + energy_to_add, user['energy_max'])
+                cur.execute('''
+                    UPDATE users 
+                    SET energy_current = %s, last_energy_update = %s
+                    WHERE telegram_id = %s
+                ''', (new_energy, current_time, telegram_id))
+                user['energy_current'] = new_energy
+        
+        # Проверяем достаточно ли энергии
+        if user['energy_current'] < taps_count:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            return {'success': False, 'error': 'Недостаточно энергии', 'energy': user['energy_current']}
+        
+        # Вычисляем заработок с учетом рефералов
+        base_tap_value = user['tap_value']
+        referral_bonus = user['referral_count'] * 0.01  # 1% за каждого реферала
+        tap_value = base_tap_value * (1 + referral_bonus)
+        earnings = tap_value * taps_count
+        
+        # Обновляем данные пользователя (энергия уже заблокирована)
+        cur.execute('''
+            UPDATE users 
+            SET energy_current = energy_current - %s,
+                balance = balance + %s,
+                total_taps = total_taps + %s,
+                last_tap_at = NOW()
+            WHERE telegram_id = %s
+            RETURNING energy_current, balance
+        ''', (taps_count, earnings, taps_count, telegram_id))
+        
+        result = cur.fetchone()
+        
+        # Записываем транзакцию
+        cur.execute('''
+            INSERT INTO transactions (user_id, type, amount, description, created_at)
+            SELECT id, 'click', %s, 'Заработок с кликов', NOW()
+            FROM users WHERE telegram_id = %s
+        ''', (earnings, telegram_id))
+        
+        conn.commit()
+        
         cur.close()
         conn.close()
-        return {'success': False, 'error': 'Недостаточно энергии'}
+        
+        return {
+            'success': True,
+            'balance': float(result['balance']),
+            'energy': result['energy_current'],
+            'earnings': float(earnings)
+        }
     
-    # Вычисляем заработок с учетом рефералов
-    base_tap_value = user['tap_value']
-    referral_bonus = user['referral_count'] * 0.01  # 1% за каждого реферала
-    tap_value = base_tap_value * (1 + referral_bonus)
-    earnings = tap_value * taps_count
-    
-    # Обновляем данные пользователя
-    cur.execute('''
-        UPDATE users 
-        SET energy_current = energy_current - %s,
-            balance = balance + %s,
-            total_taps = total_taps + %s,
-            last_tap_at = NOW()
-        WHERE telegram_id = %s
-    ''', (taps_count, earnings, taps_count, telegram_id))
-    
-    # Записываем транзакцию
-    cur.execute('''
-        INSERT INTO transactions (user_id, type, amount, description, created_at)
-        SELECT id, 'click', %s, 'Заработок с кликов', NOW()
-        FROM users WHERE telegram_id = %s
-    ''', (earnings, telegram_id))
-    
-    conn.commit()
-    
-    # Получаем обновленные данные
-    cur.execute('SELECT * FROM users WHERE telegram_id = %s', (telegram_id,))
-    updated_user = cur.fetchone()
-    
-    cur.close()
-    conn.close()
-    
-    return {
-        'success': True,
-        'balance': float(updated_user['balance']),
-        'energy': updated_user['energy_current'],
-        'earnings': float(earnings)
-    }
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        raise e
 
 def get_leaderboard(period='daily', limit=50):
     """Получение таблицы лидеров"""
