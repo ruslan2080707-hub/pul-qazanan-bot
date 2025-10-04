@@ -4,6 +4,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import asyncio
+import logging
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -11,6 +12,13 @@ from src import db
 from src.bot import setup_bot, send_withdrawal_notification, send_deposit_notification
 
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
@@ -154,15 +162,15 @@ def purchase_boost():
         telegram_id = data.get('telegram_id')
         boost_id = data.get('boost_id')
         
-        print(f"[SHOP] Boost purchase request: user={telegram_id}, boost_id={boost_id}")
+        logger.info(f"[SHOP] Boost purchase request: user={telegram_id}, boost_id={boost_id}")
         
         result = db.purchase_boost(telegram_id, boost_id)
         
-        print(f"[SHOP] Boost purchase result: {result}")
+        logger.info(f"[SHOP] Boost purchase result: {result}")
         
         return jsonify(result)
     except Exception as e:
-        print(f"[SHOP] ERROR purchasing boost: {e}")
+        logger.info(f"[SHOP] ERROR purchasing boost: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/cards', methods=['GET'])
@@ -186,15 +194,15 @@ def purchase_card():
         telegram_id = data.get('telegram_id')
         card_id = data.get('card_id')
         
-        print(f"[SHOP] Card purchase request: user={telegram_id}, card_id={card_id}")
+        logger.info(f"[SHOP] Card purchase request: user={telegram_id}, card_id={card_id}")
         
         result = db.purchase_card(telegram_id, card_id)
         
-        print(f"[SHOP] Card purchase result: {result}")
+        logger.info(f"[SHOP] Card purchase result: {result}")
         
         return jsonify(result)
     except Exception as e:
-        print(f"[SHOP] ERROR purchasing card: {e}")
+        logger.info(f"[SHOP] ERROR purchasing card: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/cards/claim', methods=['POST'])
@@ -218,7 +226,7 @@ def create_withdrawal():
         amount = float(data.get('amount'))
         card_number = data.get('card_number')
         
-        print(f"[WITHDRAWAL] Creating withdrawal for user {telegram_id}, amount: {amount}")
+        logger.info(f"[WITHDRAWAL] Creating withdrawal for user {telegram_id}, amount: {amount}")
         
         result = db.create_withdrawal(telegram_id, amount, card_number)
         
@@ -226,7 +234,7 @@ def create_withdrawal():
             # Отправляем уведомление админу
             try:
                 user = db.get_user_by_telegram_id(telegram_id)
-                print(f"[WITHDRAWAL] Sending notification to admin for user: {user.get('first_name', 'Unknown')}")
+                logger.info(f"[WITHDRAWAL] Sending notification to admin for user: {user.get('first_name', 'Unknown')}")
                 
                 if bot:
                     asyncio.run(send_withdrawal_notification(
@@ -236,15 +244,15 @@ def create_withdrawal():
                         amount, 
                         card_number
                     ))
-                    print(f"[WITHDRAWAL] Notification sent successfully")
+                    logger.info(f"[WITHDRAWAL] Notification sent successfully")
                 else:
-                    print(f"[WITHDRAWAL] ERROR: Bot is not initialized!")
+                    logger.info(f"[WITHDRAWAL] ERROR: Bot is not initialized!")
             except Exception as notif_error:
-                print(f"[WITHDRAWAL] ERROR sending notification: {notif_error}")
+                logger.info(f"[WITHDRAWAL] ERROR sending notification: {notif_error}")
         
         return jsonify(result)
     except Exception as e:
-        print(f"[WITHDRAWAL] ERROR: {e}")
+        logger.info(f"[WITHDRAWAL] ERROR: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/deposit', methods=['POST'])
@@ -256,7 +264,7 @@ def create_deposit():
         amount = float(data.get('amount'))
         proof_url = data.get('proof_url', 'pending')
         
-        print(f"[DEPOSIT] Creating deposit for user {telegram_id}, amount: {amount}")
+        logger.info(f"[DEPOSIT] Creating deposit for user {telegram_id}, amount: {amount}")
         
         conn = db.get_db_connection()
         cur = conn.cursor()
@@ -274,12 +282,12 @@ def create_deposit():
         cur.close()
         conn.close()
         
-        print(f"[DEPOSIT] Deposit created with ID: {deposit_id}")
+        logger.info(f"[DEPOSIT] Deposit created with ID: {deposit_id}")
         
         # Отправляем уведомление админу
         try:
             user = db.get_user_by_telegram_id(telegram_id)
-            print(f"[DEPOSIT] Sending notification to admin for user: {user.get('first_name', 'Unknown')}")
+            logger.info(f"[DEPOSIT] Sending notification to admin for user: {user.get('first_name', 'Unknown')}")
             
             if bot:
                 asyncio.run(send_deposit_notification(
@@ -289,16 +297,16 @@ def create_deposit():
                     amount, 
                     proof_url
                 ))
-                print(f"[DEPOSIT] Notification sent successfully")
+                logger.info(f"[DEPOSIT] Notification sent successfully")
             else:
-                print(f"[DEPOSIT] ERROR: Bot is not initialized!")
+                logger.info(f"[DEPOSIT] ERROR: Bot is not initialized!")
         except Exception as notif_error:
-            print(f"[DEPOSIT] ERROR sending notification: {notif_error}")
+            logger.info(f"[DEPOSIT] ERROR sending notification: {notif_error}")
             # Не возвращаем ошибку, так как депозит уже создан
         
         return jsonify({'success': True, 'deposit_id': deposit_id})
     except Exception as e:
-        print(f"[DEPOSIT] ERROR: {e}")
+        logger.info(f"[DEPOSIT] ERROR: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/admin/tasks', methods=['POST'])
