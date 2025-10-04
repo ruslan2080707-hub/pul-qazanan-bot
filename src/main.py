@@ -262,7 +262,7 @@ def create_deposit():
         cur = conn.cursor()
         
         cur.execute('''
-            INSERT INTO deposits (user_id, amount, payment_proof, status, created_at)
+            INSERT INTO deposits (user_id, amount, screenshot_path, status, created_at)
             SELECT id, %s, %s, 'pending', NOW()
             FROM users WHERE telegram_id = %s
             RETURNING id
