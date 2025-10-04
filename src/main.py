@@ -16,9 +16,19 @@ app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'sta
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 CORS(app)
 
+# Health check endpoint (before bot setup)
+@app.route('/health')
+def health_check():
+    return jsonify({'status': 'ok', 'message': 'Flask is running'}), 200
+
 # Настройка бота
-bot_application = setup_bot()
-bot = bot_application.bot
+try:
+    bot_application = setup_bot()
+    bot = bot_application.bot
+except Exception as e:
+    print(f"Warning: Bot setup failed: {e}")
+    bot_application = None
+    bot = None
 
 @app.route('/admin')
 def admin_panel():
