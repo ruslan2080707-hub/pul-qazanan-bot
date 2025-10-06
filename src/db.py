@@ -32,7 +32,7 @@ def create_user(telegram_id, username, first_name, last_name, referrer_id=None):
         INSERT INTO users (telegram_id, username, first_name, last_name, balance, 
                           total_taps, energy_current, energy_max, tap_value, 
                           referral_count, referred_by, created_at, last_tap_at, last_energy_update)
-        VALUES (%s, %s, %s, %s, 0, 0, 1000, 1000, 0.0003, 0, %s, NOW(), NOW(), NOW())
+        VALUES (%s, %s, %s, %s, 0, 0, 1000, 1000, 0.00003, 0, %s, NOW(), NOW(), NOW())
         RETURNING id
     ''', (telegram_id, username, first_name, last_name, referrer_id))
     
