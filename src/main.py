@@ -106,18 +106,7 @@ def leaderboard():
         limit = int(request.args.get('limit', 50))
         
         leaders = db.get_leaderboard(period, limit)
-        
-        # Add prize information
-        prize_amounts = {
-            'daily': {'1': 0.50, '2': 0.30, '3': 0.20},
-            'weekly': {'1': 5.00, '2': 3.00, '3': 2.00},
-            'monthly': {'1': 50.00, '2': 30.00, '3': 20.00}
-        }
-        
-        return jsonify({
-            'leaders': leaders,
-            'prizes': prize_amounts.get(period, {})
-        })
+        return jsonify(leaders)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
