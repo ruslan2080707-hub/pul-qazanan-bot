@@ -25,3 +25,7 @@ urllib3==2.5.0
 Werkzeug==3.1.3
 
 gunicorn==21.2.0
+
+# Scheduler for automatic prize awarding
+APScheduler==3.10.4
+pytz==2024.1
